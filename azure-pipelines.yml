@@ -15,8 +15,6 @@ steps:
 # ...
 steps:
 - script: dotnet restore
-# do this before your build tasks
-steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'restore'
@@ -24,7 +22,6 @@ steps:
     feedsToUse: 'config'
     nugetConfigPath: 'NuGet.config'
     externalFeedCredentials: '<Name of the NuGet service connection>'
-# ...
 steps:
 - task: DotNetCoreCLI@2
   displayName: Build
