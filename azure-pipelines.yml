@@ -5,79 +5,11 @@
 
 --- 
 pool:
-  vmImage: 'ubuntu-16.04'
-  # do this before all your .NET Core tasks
+  vmImage: 'ubuntu-16.04' 
+# do this before all your .NET Core tasks
 steps:
 - task: DotNetCoreInstaller@0
   inputs:
     packageType: 'sdk'
     version: '2.1.300'
 # ...
-- script: dotnet restore
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'restore'
-    projects: '**/*.csproj'
-    feedsToUse: 'config'
-    nugetConfigPath: 'NuGet.config'
-    externalFeedCredentials: '<Name of the NuGet service connection>'
-- task: DotNetCoreCLI@2
-  displayName: Build
-  inputs:
-    command: 'build'
-    projects: '**/*.csproj'
-    arguments: '--configuration Release'
-- task: DotNetCoreCLI@2
-  displayName: 'Install dotnetsay'
-  inputs:
-    command: 'custom'
-    custom: 'tool'
-    arguments: 'install -g dotnetsay'
-# ...
-# do this after other tasks such as building
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'test'
-    projects: '**/*Tests/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
-# ...
-# do this after your tests have run
-- script: dotnet test <test-project> --logger trx
-- task: PublishTestResults@2
-  condition: succeededOrFailed()
-  inputs:
-    testResultsFormat: 'VSTest'
-    testResultsFiles: '**/*.trx'
-# ...
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'publish'
-    publishWebProjects: true
-    arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-
-# this code takes all the files in $(Build.ArtifactStagingDirectory) and uploads them as an artifact of your build.
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
-# ...
-# do this near the end of your pipeline in most cases
-- script: dotnet pack /p:PackageVersion=$(version)  # define version variable elsewhere in your pipeline
-- task: NuGetCommand@2
-  inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-    nuGetFeedType: 'external'
-    publishFeedCredentials: '<Name of the NuGet service connection>'
-    versioningScheme: 'byEnvVar'
-    versionEnvVar: 'version'
-# ...
-# do this after you've built your app, near the end of your pipeline in most cases
-# for example, you do this before you deploy to an Azure web app on Windows
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'publish'
-    publishWebProjects: true
-    arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
